@@ -1,0 +1,26 @@
+#apiVersion: batch/v1
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: restart-job
+  namespace: alpha01
+spec:
+  concurrencyPolicy: Forbid
+  schedule: '*/2 * * * *' 
+  #  schedule: '15 23 * * 5' # At 23:15 on Friday.
+  jobTemplate:
+    spec:
+      backoffLimit: 1 
+      activeDeadlineSeconds: 600 
+      template:
+        spec:
+          serviceAccountName: deployment-restart-user
+          restartPolicy: Never
+          containers:
+            - name: kubectl
+              image: bitnami/kubectl
+              command:
+                - 'kubectl'
+                - 'rollout'
+                - 'restart'
+              args: ["deployment/scheduler", "deployment/srf"]
